@@ -111,8 +111,13 @@ func (c *CronController) DeleteCronJob() gin.HandlerFunc {
 
 func (c *CronController) DeleteAllCronJobs() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		c.DB.Delete(&modals.CronJob{})
+		c.DB.Unscoped().Where("1 = 1").Delete(&modals.CronJob{})
 		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
+func (c *CronController) UpdateJob() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 
 	}
 }

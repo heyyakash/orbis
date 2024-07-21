@@ -2,10 +2,13 @@ package main
 
 import (
 	"log"
+	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorhill/cronexpr"
 	"github.com/heyyakash/orbis/db"
 	"github.com/heyyakash/orbis/helpers"
 	"github.com/heyyakash/orbis/modals"
@@ -61,6 +64,23 @@ func Schedule() {
 
 func Worker(jobChannel <-chan modals.CronJob) {
 	for job := range jobChannel {
-		log.Print(job)
+		command := strings.Split(job.Command, " ")
+		cmd := exec.Command(command[0], command[1:]...)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			log.Printf("Error executing command '%s': %s\n", job.Command, err)
+		} else {
+			log.Printf("Output of command '%s': %s\n", job.Command, output)
+		}
+
+		expr, err := cronexpr.Parse(job.Schedule)
+		if err != nil {
+			log.Print("Error parsing cron expression for job id = ", job.JobId)
+		}
+		nextTime := expr.Next(time.Now())
+		result := db.Store.DB.Model(&modals.CronJob{}).Where("job_id = ?", job.JobId).Update("next_run", nextTime)
+		if result.Error != nil {
+			log.Print(result.Error)
+		}
 	}
 }
