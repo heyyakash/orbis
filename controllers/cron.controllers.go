@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorhill/cronexpr"
+	"github.com/heyyakash/orbis/db"
 	"github.com/heyyakash/orbis/modals"
 	"gorm.io/gorm"
 )
@@ -102,8 +103,7 @@ func (c *CronController) DeleteCronJob() gin.HandlerFunc {
 			})
 			return
 		}
-		job := modals.CronJob{JobId: uint(id)}
-		c.DB.Where("job_id = ?", job.JobId).Delete(&job)
+		db.Store.DeleteRowById(uint(id), &modals.CronJob{})
 		ctx.JSON(http.StatusOK, gin.H{})
 
 	}

@@ -72,15 +72,11 @@ func Worker(jobChannel <-chan modals.CronJob) {
 		} else {
 			log.Printf("Output of command '%s': %s\n", job.Command, output)
 		}
-
 		expr, err := cronexpr.Parse(job.Schedule)
 		if err != nil {
 			log.Print("Error parsing cron expression for job id = ", job.JobId)
 		}
 		nextTime := expr.Next(time.Now())
-		result := db.Store.DB.Model(&modals.CronJob{}).Where("job_id = ?", job.JobId).Update("next_run", nextTime)
-		if result.Error != nil {
-			log.Print(result.Error)
-		}
+		db.Store.UpdateTimeById("job_id", &job, nextTime, &modals.CronJob{})
 	}
 }

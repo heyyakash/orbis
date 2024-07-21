@@ -3,11 +3,13 @@ package db
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/heyyakash/orbis/helpers"
 	"github.com/heyyakash/orbis/modals"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var (
@@ -43,4 +45,31 @@ func Init() {
 
 	// create table if not exists
 	Store.CreateTable()
+}
+
+func (p *PostgresStore) DeleteRowById(id uint, modal interface{}) error {
+	return p.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&modals.CronJob{}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("job_id = ?", id).Delete(&modals.CronJob{}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (p *PostgresStore) UpdateTimeById(key string, job *modals.CronJob, next_time time.Time, modal interface{}) error {
+	return p.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(job).Error; err != nil {
+			return err
+		}
+
+		job.NextRun = next_time
+		if err := tx.Save(job).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
