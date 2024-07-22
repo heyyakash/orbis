@@ -69,7 +69,14 @@ func (c *CronController) GetCronJob() gin.HandlerFunc {
 			return
 		}
 		job := modals.CronJob{JobId: uint(id)}
-		c.DB.Where("job_id = ?", job.JobId).First(&job)
+		result := c.DB.Where("job_id = ?", job.JobId).First(&job)
+
+		if result.Error != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": result.Error.Error(),
+			})
+			return
+		}
 		ctx.JSON(http.StatusOK, job)
 
 	}
@@ -77,7 +84,6 @@ func (c *CronController) GetCronJob() gin.HandlerFunc {
 
 func (c *CronController) GetAllCronJob() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
 		jobs := []modals.CronJob{}
 		result := c.DB.Find(&jobs)
 		if result.Error != nil {
@@ -111,13 +117,13 @@ func (c *CronController) DeleteCronJob() gin.HandlerFunc {
 
 func (c *CronController) DeleteAllCronJobs() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		c.DB.Unscoped().Where("1 = 1").Delete(&modals.CronJob{})
+		if err := db.Store.DeleteAll(); err != nil {
+			log.Print(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Some error occured",
+			})
+			return
+		}
 		ctx.JSON(http.StatusOK, gin.H{})
-	}
-}
-
-func (c *CronController) UpdateJob() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-
 	}
 }

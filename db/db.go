@@ -49,11 +49,26 @@ func Init() {
 
 func (p *PostgresStore) DeleteRowById(id uint, modal interface{}) error {
 	return p.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&modals.CronJob{}).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(modal, id).Error; err != nil {
 			return err
 		}
 
-		if err := tx.Where("job_id = ?", id).Delete(&modals.CronJob{}).Error; err != nil {
+		if err := tx.Where("job_id = ?", id).Delete(modal).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (p *PostgresStore) DeleteAll() error {
+	return p.DB.Transaction(func(tx *gorm.DB) error {
+		var table []modals.CronJob
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Find(&table).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+		if err := tx.Unscoped().Where("1=1").Delete(&modals.CronJob{}).Error; err != nil {
+			tx.Rollback()
 			return err
 		}
 		return nil
@@ -62,7 +77,7 @@ func (p *PostgresStore) DeleteRowById(id uint, modal interface{}) error {
 
 func (p *PostgresStore) UpdateTimeById(key string, job *modals.CronJob, next_time time.Time, modal interface{}) error {
 	return p.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(job).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("job_id = ?", job.JobId).First(job).Error; err != nil {
 			return err
 		}
 

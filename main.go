@@ -36,7 +36,7 @@ func main() {
 	}
 
 	for i := 1; i <= pool; i++ {
-		go Worker(JobsChannel)
+		go Worker(JobsChannel, i)
 	}
 
 	go Schedule()
@@ -62,15 +62,15 @@ func Schedule() {
 	}
 }
 
-func Worker(jobChannel <-chan modals.CronJob) {
+func Worker(jobChannel <-chan modals.CronJob, label int) {
 	for job := range jobChannel {
 		command := strings.Split(job.Command, " ")
 		cmd := exec.Command(command[0], command[1:]...)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			log.Printf("Error executing command '%s': %s\n", job.Command, err)
+			log.Printf("Goroutine %d : Error executing command '%s': %s\n", label, job.Command, err)
 		} else {
-			log.Printf("Output of command '%s': %s\n", job.Command, output)
+			log.Printf("Goroutine %d : Output of command '%s': %s\n", label, job.Command, output)
 		}
 		expr, err := cronexpr.Parse(job.Schedule)
 		if err != nil {
