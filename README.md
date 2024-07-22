@@ -1,37 +1,3 @@
-### What is Cron scheduler ?
-
-A cron scheduler is a time-based job scheduler. It allows users to schedule scripts or commands to run automatically at specified times or intervals. It runs in the background and executes scheduled tasks according to the configuration in a file called `crontab`.
-
-Here's a quick overview of how it works:
-
-1. **Crontab File**: This file contains a list of jobs and their schedules. Each line in the crontab file represents a job and follows a specific syntax to define when the job should run.
-    
-2. **Scheduling Syntax**: The schedule for each job is defined using a combination of fields:
-    
-    * Minute (0-59)
-        
-    * Hour (0-23)
-        
-    * Day of the month (1-31)
-        
-    * Month (1-12)
-        
-    * Day of the week (0-7, where both 0 and 7 represent Sunday)
-        
-    
-    For example, a line in a crontab file might look like this:
-    
-    ```bash
-    30 8 * * 1-5 /path/to/script.sh
-    ```
-    
-    This would run `/path/to/`[`script.sh`](http://script.sh) at 8:30 AM every Monday through Friday.
-    
-3. **Cron Jobs**: These are the actual commands or scripts specified in the crontab file. Each job is executed according to its scheduled time.
-    
-
-Cron is widely used for tasks such as automating backups, sending emails, and running periodic maintenance scripts.
-
 ### What is Orbis ?
 
 Orbis is a robust and lightweight cron scheduler, crafted in the Go programming language. It features an API server that serves as an interface to the scheduler. Orbis leverages Postgres for storing cron jobs and employs a resizable goroutine pool to achieve efficient concurrency.
