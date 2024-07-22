@@ -8,9 +8,9 @@ import (
 )
 
 func GetString(key string) string {
-	err := godotenv.Load("./certs/.env")
+	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatalf("Error Loading the .env file")
+		log.Print("Error Loading the .env file")
 	}
 
 	return os.Getenv(key)
